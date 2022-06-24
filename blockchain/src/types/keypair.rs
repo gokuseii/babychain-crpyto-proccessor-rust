@@ -20,7 +20,7 @@ impl KeyPair {
         }
     }
 
-    pub fn generate() -> KeyPair {
+    pub fn generate() -> Self {
         let csprng = &mut rand::rngs::OsRng {};
         let keypair = Keypair::generate(csprng);
 
