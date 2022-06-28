@@ -1,11 +1,26 @@
 use ed25519_dalek::{ExpandedSecretKey, Keypair, PublicKey, SecretKey, Verifier};
 use hex;
+use keccak_rust::Keccak;
 
+use crate::traits::Hashable;
 use crate::types::signature::Signature;
+use crate::types::Hash;
 
+#[derive(Debug)]
 pub struct KeyPair {
     pub private_key: SecretKey,
     pub public_key: PublicKey,
+}
+
+impl Clone for KeyPair {
+    fn clone(&self) -> Self {
+        let private_key = SecretKey::from_bytes(self.private_key.as_bytes()).unwrap();
+        let public_key = PublicKey::from_bytes(self.public_key.as_bytes()).unwrap();
+        Self {
+            private_key,
+            public_key,
+        }
+    }
 }
 
 impl KeyPair {
@@ -35,7 +50,7 @@ impl KeyPair {
         Signature(exp.sign(message.as_bytes(), &self.public_key))
     }
 
-    fn verify(&self, message: &String, sig: &Signature) -> bool {
+    pub fn verify(&self, message: &String, sig: &Signature) -> bool {
         self.public_key.verify(message.as_bytes(), &sig.0).is_ok()
     }
 
@@ -45,6 +60,14 @@ impl KeyPair {
             hex::encode(self.private_key.as_bytes())
         );
         println!("Public Key: 0x{}", hex::encode(self.public_key.as_bytes()));
+    }
+}
+
+impl Hashable for KeyPair {
+    fn hash(&self) -> Hash {
+        let mut keccak = Keccak::new(256);
+        keccak.update(&hex::encode(self.public_key.as_bytes()));
+        keccak.hash()
     }
 }
 

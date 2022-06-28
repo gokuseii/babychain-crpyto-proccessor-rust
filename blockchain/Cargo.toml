@@ -9,4 +9,4 @@ edition = "2021"
 rand = "0.7"
 ed25519-dalek = "*"
 hex = "0.4"
-
+keccak-rust = { git = "https://github.com/gokuseii/keccak-rust" }
