@@ -6,6 +6,7 @@ mod account;
 mod keypair;
 mod operation;
 mod signature;
+mod transaction;
 
 pub type AccountId = String;
 pub type Balance = u128;

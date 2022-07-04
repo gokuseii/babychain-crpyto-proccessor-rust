@@ -3,6 +3,7 @@ use keccak_rust::Keccak;
 use crate::traits::Hashable;
 use crate::types::{Account, AccountId, Balance, Hash, Signature};
 
+#[derive(Debug)]
 pub struct Operation {
     sender: Account,
     receiver_id: AccountId,
