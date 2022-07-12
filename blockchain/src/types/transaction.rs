@@ -5,7 +5,7 @@ use crate::types::blockhain::Blockchain;
 use crate::types::operation::Operation;
 use crate::types::{Error, Hash};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Transaction {
     id: Hash,
     pub operations: Vec<Operation>,
@@ -26,36 +26,39 @@ impl Transaction {
 
     pub fn validate(&self, chain: &mut Blockchain) -> Result<(), Error> {
         let hash = self.hash();
-        for transaction in &chain.tx_database.clone() {
-            if hash == transaction.hash() {
+        let mut hashes_operation: Vec<Hash> = Vec::new();
+
+        for chain_tx in &chain.tx_database {
+            if hash == chain_tx.hash() {
                 return Err("Duplicate transactions".to_string());
             }
-            for tx_operation in &self.operations {
-                let operation_hash = tx_operation.hash();
-                for db_operation in &transaction.operations {
-                    if operation_hash == db_operation.hash() {
-                        return Err("Duplicate operation".to_string());
+            for operation in &chain_tx.operations {
+                hashes_operation.push(operation.hash());
+            }
+        }
+
+        for operation in &self.operations {
+            if hashes_operation.contains(&operation.hash()) {
+                return Err("Duplicate operation".to_string());
+            }
+
+            let amount = operation.amount();
+            if amount <= 0 {
+                return Err("Amount operation must be more than zero".to_string());
+            }
+
+            match chain.coin_database.get(operation.sender().id.as_str()) {
+                Some(balance) => {
+                    if balance.clone() < operation.amount() {
+                        return Err("Insufficient balance".to_string());
                     }
                 }
+                _ => return Err("Sender account not exist".to_string()),
+            }
 
-                let amount = tx_operation.amount();
-                if amount <= 0 {
-                    return Err("Amount operation must be more than zero".to_string());
-                }
-
-                match chain.coin_database.get(tx_operation.sender().id.as_str()) {
-                    Some(balance) => {
-                        if balance.clone() < tx_operation.amount() {
-                            return Err("Insufficient balance".to_string());
-                        }
-                    }
-                    _ => return Err("Sender account not exist".to_string()),
-                }
-
-                chain.sub_from_balance(tx_operation.sender().id, amount)?;
-                if let Err(_) = chain.add_to_balance(tx_operation.receiver().id, amount) {
-                    return Err("Overflow transaction amount".to_string());
-                }
+            chain.sub_from_balance(operation.sender().id, amount)?;
+            if let Err(_) = chain.add_to_balance(operation.receiver().id, amount) {
+                return Err("Overflow transaction amount".to_string());
             }
         }
         Ok(())

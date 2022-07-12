@@ -4,7 +4,7 @@ use crate::traits::Hashable;
 use crate::types::transaction::Transaction;
 use crate::types::Hash;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Block {
     pub id: Option<Hash>,
     pub prev: Option<Hash>,
@@ -13,11 +13,13 @@ pub struct Block {
 
 impl Block {
     pub fn new(prev: Option<Hash>, transactions: Vec<Transaction>) -> Self {
-        Block {
+        let mut block = Block {
             id: None,
             prev,
             transactions,
-        }
+        };
+        block.update_hash();
+        block
     }
 
     fn update_hash(&mut self) {
