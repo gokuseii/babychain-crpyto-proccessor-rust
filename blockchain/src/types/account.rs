@@ -2,7 +2,7 @@ use crate::traits::Hashable;
 use crate::types::operation::Operation;
 use crate::types::{AccountId, Balance, KeyPair, Signature};
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Account {
     pub id: AccountId,
     wallet: Vec<KeyPair>,
@@ -59,11 +59,11 @@ impl Account {
 
     fn create_operation(
         &self,
-        receiver_id: AccountId,
+        receiver: Account,
         amount: Balance,
         index_wallet: Option<usize>,
     ) -> Operation {
-        Operation::new(self.clone(), receiver_id, amount, index_wallet)
+        Operation::new(self.clone(), receiver, amount, index_wallet)
     }
 }
 
@@ -92,7 +92,7 @@ mod tests {
 
         alice.update_balance(10000);
 
-        let operation = alice.create_operation(bob.clone().id, amount, None);
+        let operation = alice.create_operation(bob.clone(), amount, None);
         let signature = alice.sign(&format!("{:?}", (alice.clone().id, bob.id, amount)), None);
 
         assert_eq!(10000, alice.balance());
@@ -109,7 +109,7 @@ mod tests {
 
         alice.update_balance(10000);
 
-        let operation = alice.create_operation(bob.clone().id, amount, None);
+        let operation = alice.create_operation(bob.clone(), amount, None);
         let signature = alice.sign(&format!("fake-data"), None);
 
         assert_ne!(signature.to_string(), operation.signature().to_string());

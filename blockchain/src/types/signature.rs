@@ -1,3 +1,4 @@
+#[derive(Debug, Clone)]
 pub struct Signature(pub ed25519_dalek::Signature);
 
 impl Signature {
